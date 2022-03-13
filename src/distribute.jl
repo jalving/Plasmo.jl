@@ -18,6 +18,9 @@ struct OptiEdgeRef
     worker::Int
 end
 
+struct RemoteVariableRef
+end
+
 #An optigraph distributed among Julia workers.  Used for distributed model building
 mutable struct DOptiGraph #<: Plasmo.AbstractOptiGraph
     optigraphs::OrderedDict{Int,OptiGraphRef}   #map optigraph index to reference
@@ -66,33 +69,9 @@ function add_node!(optigraph_ref::OptiGraphRef)
     #return isa(v, RemoteException) ? throw(v) : v
 end
 
-#this adds the variable, but I think it's using communication
+#this adds the variable, but I think it is creating the variable and then passing it through communication
 function JuMP.add_variable(node::OptiNodeRef, v::JuMP.AbstractVariable, base_name::String="")
     optinode_sym = node.optinode_symbol
     remotecall_wait(Core.eval, node.worker, Main, :(JuMP.add_variable($(optinode_sym), $v, $base_name)))
+    #return RemoteVariableRef?
 end
-
-#Add a node directly to the distributed optigraph adds it to all optigraph refs
-
-#Add nodes to a distributed optigraph
-
-#@optinode(dgraph,nodes) #returns distributed references to these nodes
-
-#TODO
-#distribute an OptiGraph among Julia workers.  Return a distributed optigraph
-# function distribute(graph::OptiGraph)
-#     return DOptiGraphRef
-# end
-
-
-
-# # Create the variable x with a value 3 directly on process 4
-# @defineat 4 x=3
-#
-# # Broadcast a value 3 to x on all workers (not working on Julia 0.7)
-# @broadcast x=3
-
-
-
-# Create an optinode directly on a remote optigraph
-# @spawnat 2 @optinode(graph)
