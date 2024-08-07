@@ -1143,8 +1143,8 @@ end
 
 Retrieve the current objective value on optigraph `graph`.
 """
-function JuMP.objective_value(graph::OptiGraph)
-    return MOI.get(graph_backend(graph), MOI.ObjectiveValue())
+function JuMP.objective_value(graph::OptiGraph; result::Int=1)
+    return MOI.get(graph_backend(graph), MOI.ObjectiveValue(result))
 end
 
 """
@@ -1203,6 +1203,10 @@ function JuMP.set_objective_sense(graph::OptiGraph, sense::MOI.OptimizationSense
     return nothing
 end
 
+function JuMP.set_objective_function(graph::AbstractOptiGraph, func)
+    return error("The objective function `$(func)` is not supported by Plasmo.")
+end
+
 """
     JuMP.set_objective_function(graph::OptiGraph, expr::JuMP.AbstractJuMPScalar)
 
@@ -1213,12 +1217,33 @@ function JuMP.set_objective_function(graph::OptiGraph, expr::JuMP.AbstractJuMPSc
     return nothing
 end
 
+function JuMP.set_objective_function(
+    graph::OptiGraph, funcs::AbstractVector{<:AbstractJuMPScalar}
+)
+    _moi_set_objective_function(graph, funcs)
+    return nothing
+end
+
 function _moi_set_objective_function(graph::OptiGraph, expr::JuMP.AbstractJuMPScalar)
     # add variables to backend if using subgraphs
     _add_backend_variables(graph_backend(graph), expr)
     # get the moi function made from local node variable indices
     func_type = JuMP.moi_function_type(typeof(expr))
     MOI.set(graph_backend(graph), MOI.ObjectiveFunction{func_type}(), expr)
+    return nothing
+end
+
+# TODO: get vector objective working
+function _moi_set_objective_function(
+    graph::OptiGraph, funcs::AbstractVector{<:AbstractJuMPScalar}
+)
+    # add variables to backend if using subgraphs
+    for func in funcs
+        _add_backend_variables(graph_backend(graph), func)
+    end
+    # get the moi function made from local node variable indices
+    func_type = JuMP.moi_function_type(typeof(funcs)) # --> VectorAffineFunction
+    MOI.set(graph_backend(graph), MOI.ObjectiveFunction{func_type}(), funcs)
     return nothing
 end
 

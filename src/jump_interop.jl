@@ -66,6 +66,36 @@ function MOI.ScalarAffineFunction(a::GenericAffExpr{C,<:NodeVariableRef}) where 
     return MOI.ScalarAffineFunction(terms, a.constant)
 end
 
+function _fill_vaf!(
+    terms::Vector{<:MOI.VectorAffineTerm}, offset::Int, oi::Int, aff::AbstractJuMPScalar
+)
+    i = 1
+    for (coef, var) in JuMP.linear_terms(aff)
+        terms[offset + i] = MOI.VectorAffineTerm(
+            Int64(oi), MOI.ScalarAffineTerm(coef, index(var))
+        )
+        i += 1
+    end
+    return offset + length(JuMP.linear_terms(aff))
+end
+
+function MOI.VectorAffineFunction(affs::Vector{GenericAffExpr{C,NodeVariableRef}}) where {C}
+    len = 0
+    for aff in affs
+        len += length(JuMP.linear_terms(aff))
+    end
+    terms = Vector{MOI.VectorAffineTerm{C}}(undef, len)
+    constant = Vector{C}(undef, length(affs))
+    offset = 0
+    for (i, aff) in enumerate(affs)
+        constant[i] = aff.constant
+        offset = _fill_vaf!(terms, offset, i, aff)
+    end
+    return MOI.VectorAffineFunction(terms, constant)
+end
+
+# TODO: function moi_function_type
+
 function JuMP.jump_function_type(
     obj::OptiObject, ::Type{MOI.ScalarAffineFunction{C}}
 ) where {C}

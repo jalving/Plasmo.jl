@@ -224,6 +224,19 @@ function MOI.set(
     return nothing
 end
 
+# TODO: vector affine function
+function MOI.set(
+    backend::GraphMOIBackend,
+    attr::MOI.ObjectiveFunction{F},
+    jump_funcs::Vector{<:JuMP.AbstractJuMPScalar},
+) where {F<:MOI.AbstractVectorFunction}
+    vector_moi_func = JuMP.moi_function(jump_funcs)
+    # TODO: create proper vector affine function
+    moi_funcs_graph = _create_graph_moi_func(backend, vector_moi_func, jump_funcs)
+    MOI.set(backend, attr, moi_funcs_graph)
+    return nothing
+end
+
 # element attributes
 
 # By default, just try to get the attribute from the graph MOI backend
@@ -696,15 +709,6 @@ function _copy_subgraph_backends!(backend::GraphMOIBackend)
         sub_backend = graph_backend(subgraph)
         for ((element, attr), registered_name) in sub_backend.operator_map
             _copy_operator(sub_backend, backend, element, attr, registered_name)
-            # operator = MOI.get(
-            #     graph_backend(subgraph), 
-            #     MOI.UserDefinedFunction(registered_name, attr.arity)
-            # )
-            # # set operator on new graph backend
-            # attr_register = MOI.UserDefinedFunction(registered_name, attr.arity)
-            # MOI.set(backend, attr_register, element, operator)
-            # backend.element_attributes[(element, attr)] = tuple(args...)
-            # backend.operator_map[(element, attr)] = registered_name
         end
     end
 end
@@ -717,10 +721,8 @@ function _copy_operator(
     registered_name::Symbol,
 )
     operator = MOI.get(src_backend, MOI.UserDefinedFunction(registered_name, attr.arity))
-    # set operator on new graph backend
     attr_register = MOI.UserDefinedFunction(registered_name, attr.arity)
     MOI.set(dest_backend.moi_backend, attr_register, operator)
-    # dest_backend.element_attributes[(element, attr)] = operator
     dest_backend.operator_map[(element, attr)] = registered_name
     return nothing
 end
