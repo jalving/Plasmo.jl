@@ -94,8 +94,6 @@ function MOI.VectorAffineFunction(affs::Vector{GenericAffExpr{C,NodeVariableRef}
     return MOI.VectorAffineFunction(terms, constant)
 end
 
-# TODO: function moi_function_type
-
 function JuMP.jump_function_type(
     obj::OptiObject, ::Type{MOI.ScalarAffineFunction{C}}
 ) where {C}

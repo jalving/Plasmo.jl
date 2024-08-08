@@ -580,6 +580,15 @@ function _create_graph_moi_func(
     return moi_func_graph
 end
 
+# TODO
+function _create_graph_moi_func(
+    backend::GraphMOIBackend,
+    moi_func::MOI.VectorAffineFunction,
+    jump_funcs::Vector{JuMP.GenericAffExpr},
+)
+    return nothing
+end
+
 function _create_graph_moi_func(
     backend::GraphMOIBackend,
     moi_func::MOI.ScalarQuadraticFunction,
