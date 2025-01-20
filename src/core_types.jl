@@ -92,7 +92,8 @@ mutable struct OptiGraph <: AbstractOptiGraph
 
     optinodes::OrderedSet{OptiNode{OptiGraph}}
     optiedges::OrderedSet{OptiEdge{OptiGraph}}
-    subgraphs::OrderedSet{OptiGraph}
+    subgraphs::OrderedSet{AbstractOptiGraph}
+    optinode_map::OrderedDict{NodeIndex,OptiNode{OptiGraph}}
     optiedge_map::OrderedDict{Set{OptiNode{OptiGraph}},OptiEdge{OptiGraph}}
 
     # subgraphs keep a reference to their parent

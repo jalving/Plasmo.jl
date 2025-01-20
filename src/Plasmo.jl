@@ -25,6 +25,9 @@ const GOI = GraphOptInterface
 using Reexport
 @reexport using JuMP
 
+using Distributed
+using DistributedArrays
+
 export OptiGraph,
     OptiNode,
     OptiEdge,
@@ -143,6 +146,8 @@ include("graph_functions/topology.jl")
 include("graph_functions/partition.jl")
 
 include("utils.jl")
+
+include("distributed.jl")
 
 # extensions
 function __init__()

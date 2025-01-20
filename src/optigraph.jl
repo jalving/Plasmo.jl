@@ -9,6 +9,7 @@ function _initialize_optigraph(name::Symbol)
         OrderedSet{OptiNode}(),
         OrderedSet{OptiEdge}(),
         OrderedSet{OptiGraph}(),
+        OrderedDict{NodeIndex,OptiNode}(),
         OrderedDict{Set{OptiNode},OptiEdge}(),
         nothing,
         ElementData(OptiGraph),
@@ -185,6 +186,7 @@ function add_node(
     node_index = NodeIndex(gensym())
     node = OptiNode(Ref(graph), node_index, Ref(label))
     push!(graph.optinodes, node)
+    graph.optinode_map[node.idx] = node
     add_node(graph_backend(graph), node)
     return node
 end
@@ -199,6 +201,7 @@ from the other graph to the new graph.
 function add_node(graph::OptiGraph, node::OptiNode)
     # node in all_nodes(graph) && error("Node already exists within graph")
     push!(graph.optinodes, node)
+    graph.optinode_map[node.idx] = node
     add_node(graph_backend(graph), node)
     _track_node_in_graph(graph, node)
     return nothing
