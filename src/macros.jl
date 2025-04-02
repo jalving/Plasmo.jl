@@ -87,5 +87,17 @@ macro nodevariables(nodes, args...)
     return esc(macro_code)
 end
 
+macro remote_execute(remote_graph, body)
+    quote
+        # Extract the worker from the remote graph
+        worker_id = $(remote_graph).worker
+
+        # Run the code block on the specified worker without fetching the result
+        @spawnat worker_id begin
+            $(esc(body))
+        end
+    end
+end
+
 # TODO: @nodeconstraints
 # We would need to intercept variable arguments and lookup the actual node variables
